@@ -62,6 +62,10 @@
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
   border-bottom: 1px solid var(--line-1);
   min-width: 0;
+  /* `backdrop-filter` above makes this a stacking context, so the dropdown
+     menus (z-index 60) can no longer compete with the panes outside it.
+     Without this the preview's headings paint straight over the open menu. */
+  position: relative; z-index: 30;
 }
 .brand { display: flex; align-items: center; gap: var(--sp-2); flex: 0 0 auto; }
 .brand-mark {

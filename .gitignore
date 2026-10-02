@@ -1,0 +1,21 @@
+# Runtime data: accounts, sessions, and every user's Markdown files.
+data/
+
+# Node
+node_modules/
+npm-debug.log*
+.npm/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.log
+
+# Local overrides
+.env
+.env.local
+# Backups hold every user documents; never commit them.
+backups/
+data.replaced-*/

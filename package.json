@@ -1,0 +1,20 @@
+{
+  "name": "dotmdpritter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A beautiful offline-first Markdown editor with margin notes and PDF/DOC export.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js 4173",
+    "test": "node runall.js",
+    "test:unit": "node selftest.js",
+    "test:api": "node apitest.js",
+    "test:cloud": "node cloudtest.js"
+  },
+  "keywords": ["markdown", "editor", "preview", "notes", "pdf", "export", "offline"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  }
+}

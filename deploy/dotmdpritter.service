@@ -1,0 +1,59 @@
+# =========================================================================
+# dotMDpritter — systemd unit
+#
+#   sudo cp deploy/dotmdpritter.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now dotmdpritter
+#   sudo systemctl status dotmdpritter
+#
+# Adjust User= and the paths if you are not running as a dedicated
+# `dotmd` account created with:
+#   sudo useradd --system --home /var/lib/dotmdpritter --shell /usr/sbin/nologin dotmd
+# =========================================================================
+[Unit]
+Description=dotMDpritter Markdown editor
+Documentation=https://github.com/yourname/dotmdpritter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dotmd
+Group=dotmd
+
+WorkingDirectory=/opt/dotmdpritter
+Environment=NODE_ENV=production
+Environment=PORT=4173
+# The data directory MUST be persistent and writable by User= above.
+Environment=DOTMD_DATA=/var/lib/dotmdpritter
+# Set to 1 because nginx terminates TLS in front of this service.
+Environment=DOTMD_SECURE=1
+
+ExecStart=/usr/bin/node server.js
+
+# Graceful shutdown: the app flushes its store on SIGTERM and exits 0.
+KillSignal=SIGTERM
+TimeoutStopSec=20
+Restart=on-failure
+RestartSec=3
+
+# --- Hardening ---
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+# The only writable path the app needs.
+ReadWritePaths=/var/lib/dotmdpritter
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dotmdpritter
+
+[Install]
+WantedBy=multi-user.target

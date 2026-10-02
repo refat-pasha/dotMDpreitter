@@ -1,0 +1,24 @@
+# Never bake runtime state into the image — it must live on a volume.
+data/
+.git/
+.gitignore
+node_modules/
+
+# Tests, docs and deployment helpers are not needed at runtime.
+selftest.js
+apitest.js
+cloudtest.js
+runall.js
+NOTES.md
+DEPLOY.md
+Dockerfile
+.dockerignore
+deploy/
+*.log
+*.tmp
+
+# Editor cruft
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

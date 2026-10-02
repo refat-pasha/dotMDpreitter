@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-accent="indigo">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>dotMDpritter — Markdown Editor &amp; Note Studio</title>
+<meta name="description" content="A beautiful offline-capable Markdown editor with margin notes, PDF and DOC export." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%8D%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="assets/css/theme.css" />
+<link rel="stylesheet" href="assets/css/app.css" />
+<link rel="stylesheet" href="vendor/highlight.min.css" />
+</head>
+<body>
+
+<!-- ============================ SVG ICON SPRITE ============================ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="i-logo" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v18H6.5A2.5 2.5 0 0 1 4 18.5v-13Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 7.5h7M8 11h7M8 14.5h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M8 3v6h7M8 21v-6h8v6"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></symbol>
+  <symbol id="i-file-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5M9.5 14h5M12 11.5v5"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.1 2.1 0 0 0-3-3L5 17v3Z"/><path d="M13.5 6.5 17 10"/></symbol>
+  <symbol id="i-columns" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12a1 1 0 0 1 1 1v16l-4-3H6a2 2 0 0 1-2-2V5Z"/><path d="M8 8.5h8M8 12h5"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6M7 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v7H7z"/></symbol>
+  <symbol id="i-bold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h6a4 4 0 0 1 0 8H7zM7 12h7a4 4 0 0 1 0 8H7z"/></symbol>
+  <symbol id="i-italic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4H9M15 20H9M14 4l-4 16"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 8-5 4 5 4M15 8l5 4-5 4"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 13.5a4 4 0 0 0 5.7 0l2.3-2.3a4 4 0 0 0-5.7-5.7L11.5 6.8"/><path d="M13.5 10.5a4 4 0 0 0-5.7 0l-2.3 2.3a4 4 0 0 0 5.7 5.7l1.3-1.3"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m4 17 5-5 4 4 3-2.5 4 4"/></symbol>
+  <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M9.5 9.5V20M3 15h18"/></symbol>
+  <symbol id="i-list-ul" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-quote" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h6v6a4 4 0 0 1-4 4M14 7h6v6a4 4 0 0 1-4 4"/></symbol>
+  <symbol id="i-h1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6v12M11 6v12M4 12h7M16 9l3-2v11"/></symbol>
+  <symbol id="i-hr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 12h18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.6M12 18.9v2.6M21.5 12h-2.6M5.1 12H2.5M18.7 5.3l-1.9 1.9M7.2 16.8l-1.9 1.9M18.7 18.7l-1.9-1.9M7.2 7.2 5.3 5.3"/></symbol>
+  <symbol id="i-al" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h11"/></symbol>
+</svg>
+<!-- ============================ APP SHELL ============================ -->
+<div class="app" id="app">
+
+  <!-- ---------- TOP BAR ---------- -->
+  <header class="topbar">
+    <div class="brand" title="dotMDpritter">
+      <span class="brand-mark"><svg class="ic"><use href="#i-logo"/></svg></span>
+      <span class="brand-text">dot<b>MD</b>pritter</span>
+    </div>
+
+    <div class="tabs" id="tabs" role="tablist" aria-label="Open documents"></div>
+
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="btnNew"    title="New document (Ctrl+N)"><svg class="ic"><use href="#i-file-plus"/></svg><span>New</span></button>
+      <button class="btn btn-ghost" id="btnOpen"   title="Open a .md file (Ctrl+O)"><svg class="ic"><use href="#i-folder"/></svg><span>Open</span></button>
+      <button class="btn btn-ghost" id="btnSaveMd" title="Download as .md (Ctrl+S)"><svg class="ic"><use href="#i-save"/></svg><span>.md</span></button>
+
+      <div class="menu-wrap">
+        <button class="btn btn-primary" id="btnExport" title="Export document"><svg class="ic"><use href="#i-download"/></svg><span>Export</span><svg class="ic caret"><use href="#i-chevron"/></svg></button>
+        <div class="menu" id="exportMenu" role="menu">
+          <button data-export="pdf"  role="menuitem"><svg class="ic"><use href="#i-download"/></svg><div><strong>PDF</strong><small>Paginated, print-quality</small></div></button>
+          <button data-export="doc"  role="menuitem"><svg class="ic"><use href="#i-download"/></svg><div><strong>Word (.doc)</strong><small>Opens in MS Word</small></div></button>
+          <button data-export="html" role="menuitem"><svg class="ic"><use href="#i-code"/></svg><div><strong>HTML</strong><small>Self-contained page</small></div></button>
+          <button data-export="md"   role="menuitem"><svg class="ic"><use href="#i-save"/></svg><div><strong>Markdown</strong><small>Optionally with notes</small></div></button>
+          <button data-export="txt"  role="menuitem"><svg class="ic"><use href="#i-al"/></svg><div><strong>Plain text</strong><small>Stripped of markup</small></div></button>
+          <div class="menu-sep"></div>
+          <button data-export="print" role="menuitem"><svg class="ic"><use href="#i-print"/></svg><div><strong>Print…</strong><small>Via system dialog</small></div></button>
+        </div>
+      </div>
+
+      <span class="topbar-sep"></span>
+      <!-- The view toggle lives in the top bar, not inside either pane: every
+           single-pane mode hides one pane, which would hide the only control
+           that can switch back out of it. -->
+      <div class="viewseg" id="viewSeg" role="group" aria-label="View mode">
+        <button data-view="editor"  title="Editor only"><svg class="ic"><use href="#i-edit"/></svg></button>
+        <button data-view="split" class="is-active" title="Split"><svg class="ic"><use href="#i-columns"/></svg></button>
+        <button data-view="preview" title="Preview only"><svg class="ic"><use href="#i-eye"/></svg></button>
+      </div>
+      <div class="user-wrap">
+        <button class="user-chip" id="userChip" title="Account" hidden>
+          <span class="avatar" id="userAvatar">?</span>
+          <span class="user-meta">
+            <span id="userName">Guest</span>
+            <small id="userEmail">Not signed in</small>
+          </span>
+        </button>
+        <div class="user-menu" id="userMenu" hidden>
+          <div class="user-menu-head">
+            <strong id="userNameMenu">Guest</strong>
+            <small id="userEmailMenu">Not signed in</small>
+          </div>
+          <button id="btnChangePw"><svg class="ic"><use href="#i-settings"/></svg>Change password</button>
+          <button id="btnLogout" class="danger"><svg class="ic"><use href="#i-x"/></svg>Sign out</button>
+        </div>
+      </div>
+      <button class="icon-btn" id="btnNotes"  title="Toggle notes panel (Ctrl+Alt+N)"><svg class="ic"><use href="#i-note"/></svg></button>
+      <button class="icon-btn" id="btnToc"    title="Toggle outline (Ctrl+Alt+O)"><svg class="ic"><use href="#i-list"/></svg></button>
+      <button class="icon-btn" id="btnTheme"  title="Toggle theme (Ctrl+Alt+D)"><svg class="ic" id="themeIcon"><use href="#i-sun"/></svg></button>
+      <button class="icon-btn" id="btnSettings" title="Settings"><svg class="ic"><use href="#i-settings"/></svg></button>
+    </div>
+  </header>
+
+  <!-- ---------- WORKSPACE ---------- -->
+  <main class="workspace">
+
+    <!-- Outline sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="side-tabs" role="tablist">
+        <button class="side-tab is-active" data-side="outline" role="tab">Outline</button>
+        <button class="side-tab" data-side="files" role="tab">Files</button>
+        <button class="side-tab" data-side="cloud" role="tab">Cloud</button>
+      </div>
+
+      <div class="side-panel is-active" data-panel="outline">
+        <div class="side-search">
+          <svg class="ic"><use href="#i-search"/></svg>
+          <input type="search" id="tocFilter" placeholder="Filter headings" aria-label="Filter headings" />
+        </div>
+        <nav class="toc" id="toc"></nav>
+      </div>
+
+      <div class="side-panel" data-panel="files">
+        <div class="files" id="fileList"></div>
+        <button class="side-drop" id="sideDrop">
+          <svg class="ic"><use href="#i-folder"/></svg>
+          <span>Drop <b>.md</b> files here</span>
+        </button>
+      </div>
+
+      <div class="side-panel" data-panel="cloud">
+        <div class="cloud-head">
+          <svg class="ic"><use href="#i-folder"/></svg>
+          <span id="cloudPath">/</span>
+        </div>
+        <div class="cloud-tree" id="cloudTree" aria-live="polite"></div>
+        <div class="cloud-foot" id="cloudBar" hidden>
+          <button class="btn btn-ghost sm" id="btnCloudSave"><svg class="ic"><use href="#i-save"/></svg>Save open doc here</button>
+        </div>
+      </div>
+    </aside>
+    <button class="sidebar-resizer" id="sidebarResizer" title="Drag to resize" aria-label="Resize sidebar"></button>
+    <!-- Editor + preview -->
+    <section class="panes" id="panes" data-view="split">
+
+      <div class="pane pane-editor" id="paneEditor">
+        <div class="pane-head">
+          <span class="pane-title"><svg class="ic"><use href="#i-edit"/></svg>Markdown</span>
+          <span class="spacer"></span>
+          <div class="toolbar" id="toolbar">
+            <button data-md="h1"     title="Heading 1"><svg class="ic"><use href="#i-h1"/></svg></button>
+            <button data-md="bold"   title="Bold (Ctrl+B)"><svg class="ic"><use href="#i-bold"/></svg></button>
+            <button data-md="italic" title="Italic (Ctrl+I)"><svg class="ic"><use href="#i-italic"/></svg></button>
+            <button data-md="code"   title="Inline code"><svg class="ic"><use href="#i-code"/></svg></button>
+            <button data-md="link"   title="Link (Ctrl+K)"><svg class="ic"><use href="#i-link"/></svg></button>
+            <button data-md="image"  title="Image"><svg class="ic"><use href="#i-image"/></svg></button>
+            <button data-md="table"  title="Table"><svg class="ic"><use href="#i-table"/></svg></button>
+            <button data-md="ul"     title="Bulleted list"><svg class="ic"><use href="#i-list-ul"/></svg></button>
+            <button data-md="quote"  title="Blockquote"><svg class="ic"><use href="#i-quote"/></svg></button>
+            <button data-md="hr"     title="Horizontal rule"><svg class="ic"><use href="#i-hr"/></svg></button>
+            <button data-md="task"   title="Task item"><svg class="ic"><use href="#i-check"/></svg></button>
+          </div>
+        </div>
+        <div class="editor-wrap">
+          <div class="gutter" id="gutter" aria-hidden="true"></div>
+          <textarea id="editor" spellcheck="false" placeholder="# Start typing your Markdown here&#10;&#10;Or drop a .md file anywhere on this window." aria-label="Markdown source editor"></textarea>
+        </div>
+      </div>
+
+      <div class="pane-resizer" id="paneResizer" title="Drag to resize" aria-label="Resize panes"></div>
+
+      <div class="pane pane-preview" id="panePreview">
+        <div class="pane-head">
+          <span class="pane-title"><svg class="ic"><use href="#i-eye"/></svg>Preview</span>
+          <span class="spacer"></span>
+          <div class="zoom">
+            <button id="zoomOut" title="Zoom out" aria-label="Zoom out">&minus;</button>
+            <span id="zoomLabel">100%</span>
+            <button id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button>
+          </div>
+        </div>
+        <div class="preview-scroll" id="previewScroll">
+          <article class="markdown-body" id="preview"></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Notes sidebar -->
+    <aside class="notes" id="notes" aria-label="Notes">
+      <div class="notes-head">
+        <span class="pane-title"><svg class="ic"><use href="#i-note"/></svg>Notes</span>
+        <span class="count-pill" id="noteCount">0</span>
+        <span class="spacer"></span>
+        <button class="icon-btn sm" id="notesClose" title="Close notes"><svg class="ic"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="notes-hint" id="notesHint">
+        <svg class="ic lg"><use href="#i-note"/></svg>
+        <p><b>Margin notes</b></p>
+        <p>Select any text in the preview, then press <kbd>N</kbd> to attach a note. Notes travel with the document and can be exported.</p>
+      </div>
+      <div class="notes-list" id="notesList"></div>
+      <div class="notes-foot">
+        <button class="btn btn-ghost sm" id="exportNotesMd"><svg class="ic"><use href="#i-save"/></svg>Notes as .md</button>
+      </div>
+    </aside>
+  </main>
+  <!-- ---------- STATUS BAR ---------- -->
+  <footer class="statusbar">
+    <span id="stWords">0 words</span>
+    <span class="dot"></span>
+    <span id="stChars">0 characters</span>
+    <span class="dot"></span>
+    <span id="stRead">0 min read</span>
+    <span class="dot"></span>
+    <span id="stNotes" class="muted">0 notes</span>
+    <span class="spacer"></span>
+    <span id="stSave" class="saved">All changes saved</span>
+    <span class="dot"></span>
+    <span id="stPos" class="muted">Ln 1, Col 1</span>
+    <span class="dot"></span>
+    <span class="muted" id="stFile">untitled.md</span>
+  </footer>
+</div>
+
+<!-- ============================ OVERLAYS ============================ -->
+<div class="drop-overlay" id="dropOverlay" hidden>
+  <div class="drop-card">
+    <svg class="ic xl"><use href="#i-download"/></svg>
+    <strong>Drop your Markdown file</strong>
+    <span>.md &middot; .markdown &middot; .mdown &middot; .txt</span>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<!-- Settings modal -->
+<div class="modal" id="settingsModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Settings">
+    <header class="modal-head">
+      <h2>Settings</h2>
+      <button class="icon-btn" data-close-modal aria-label="Close settings"><svg class="ic"><use href="#i-x"/></svg></button>
+    </header>
+    <div class="modal-body">
+      <section class="set-group">
+        <h3>Appearance</h3>
+        <div class="set-row">
+          <label>Theme</label>
+          <div class="seg" id="setTheme">
+            <button data-v="dark" class="is-active">Dark</button>
+            <button data-v="light">Light</button>
+            <button data-v="system">System</button>
+          </div>
+        </div>
+        <div class="set-row">
+          <label>Accent colour</label>
+          <div class="swatches" id="setAccent">
+            <button data-v="indigo"  class="sw is-active" style="--sw:#6366f1" title="Indigo"  aria-label="Indigo"></button>
+            <button data-v="violet"  class="sw" style="--sw:#8b5cf6" title="Violet"  aria-label="Violet"></button>
+            <button data-v="emerald" class="sw" style="--sw:#10b981" title="Emerald" aria-label="Emerald"></button>
+            <button data-v="amber"   class="sw" style="--sw:#f59e0b" title="Amber"   aria-label="Amber"></button>
+            <button data-v="rose"    class="sw" style="--sw:#f43f5e" title="Rose"    aria-label="Rose"></button>
+            <button data-v="cyan"    class="sw" style="--sw:#06b6d4" title="Cyan"    aria-label="Cyan"></button>
+          </div>
+        </div>
+        <div class="set-row">
+          <label for="setFont">Preview font</label>
+          <select id="setFont">
+            <option value="sans">Inter / System Sans</option>
+            <option value="serif">Georgia / Serif</option>
+            <option value="mono">JetBrains Mono</option>
+          </select>
+        </div>
+        <div class="set-row">
+          <label>Font size <output id="setFsOut">17px</output></label>
+          <input type="range" id="setFs" min="14" max="24" step="1" value="17" />
+        </div>
+      </section>
+
+      <section class="set-group">
+        <h3>Behaviour</h3>
+        <label class="switch"><input type="checkbox" id="setScroll" checked><span class="track"></span><span>Sync editor &amp; preview scroll</span></label>
+        <label class="switch"><input type="checkbox" id="setAutoSave" checked><span class="track"></span><span>Autosave to browser storage</span></label>
+        <label class="switch"><input type="checkbox" id="setTypo" checked><span class="track"></span><span>Typographic niceties (smart quotes, dashes)</span></label>
+        <label class="switch"><input type="checkbox" id="setLineNums"><span class="track"></span><span>Line numbers in editor</span></label>
+      </section>
+
+      <section class="set-group">
+        <h3>Data</h3>
+        <div class="set-row btns">
+          <button class="btn btn-ghost" id="setExportAll">Export all notes as Markdown</button>
+          <button class="btn btn-danger" id="setClear">Clear local storage</button>
+        </div>
+      </section>
+    </div>
+    <footer class="modal-foot">
+      <span class="muted" id="setStorageInfo"></span>
+      <span class="spacer"></span>
+      <button class="btn btn-primary" data-close-modal>Done</button>
+    </footer>
+  </div>
+</div>
+
+<!-- ============================ AUTH GATE ============================ -->
+<div class="auth-gate" id="authGate" data-mode="login" hidden>
+  <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-brand">
+      <span class="brand-mark big"><svg class="ic"><use href="#i-logo"/></svg></span>
+      <h1 id="authTitle">dot<b>MD</b>pritter</h1>
+      <p>Your Markdown studio, with folders in the cloud.</p>
+    </div>
+
+    <div class="auth-tabs" role="tablist">
+      <button class="auth-tab is-active" data-mode="login" role="tab" aria-selected="true">Sign in</button>
+      <button class="auth-tab" data-mode="register" role="tab" aria-selected="false">Create account</button>
+    </div>
+
+    <form class="auth-pane" data-pane="login" autocomplete="on">
+      <label class="field">
+        <span>Email</span>
+        <input type="email" id="authEmailLogin" name="email" autocomplete="username"
+               placeholder="you@example.com" required />
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input type="password" id="authPasswordLogin" name="password" autocomplete="current-password"
+               placeholder="Your password" required />
+      </label>
+      <button type="submit" class="btn btn-primary wide" id="authSubmitLogin">Sign in</button>
+      <button type="button" class="auth-link" id="authForgot">Forgot your password?</button>
+    </form>
+
+    <form class="auth-pane" data-pane="register" hidden autocomplete="on">
+      <label class="field">
+        <span>Display name <em>optional</em></span>
+        <input type="text" id="authNameReg" name="name" autocomplete="nickname" placeholder="Ada" />
+      </label>
+      <label class="field">
+        <span>Email</span>
+        <input type="email" id="authEmailReg" name="email" autocomplete="username"
+               placeholder="you@example.com" required />
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input type="password" id="authPasswordReg" name="password" autocomplete="new-password"
+               placeholder="At least 8 characters" required minlength="8" />
+      </label>
+      <button type="submit" class="btn btn-primary wide" id="authSubmitReg">Create account</button>
+      <p class="auth-note">Passwords are hashed with scrypt and never stored in plain text.</p>
+    </form>
+
+    <form class="auth-pane" data-pane="forgot" hidden autocomplete="on">
+      <p class="auth-lede">Enter your email address and we'll send you a link to
+        choose a new password.</p>
+      <label class="field">
+        <span>Email</span>
+        <input type="email" id="authEmailForgot" name="email" autocomplete="username"
+               placeholder="you@example.com" required />
+      </label>
+      <button type="submit" class="btn btn-primary wide" id="authSubmitForgot">Send reset link</button>
+      <p class="auth-note" id="authForgotDone" hidden></p>
+      <button type="button" class="auth-link" data-back="login">Back to sign in</button>
+    </form>
+
+    <form class="auth-pane" data-pane="reset" hidden autocomplete="off">
+      <p class="auth-lede">Choose a new password for your account.</p>
+      <label class="field">
+        <span>New password</span>
+        <input type="password" id="authPasswordReset" name="password" autocomplete="new-password"
+               placeholder="At least 8 characters" required minlength="8" />
+      </label>
+      <label class="field">
+        <span>Confirm password</span>
+        <input type="password" id="authPasswordReset2" name="password2" autocomplete="new-password"
+               placeholder="Type it again" required minlength="8" />
+      </label>
+      <button type="submit" class="btn btn-primary wide" id="authSubmitReset">Save new password</button>
+      <button type="button" class="auth-link" data-back="login">Back to sign in</button>
+    </form>
+
+    <p class="auth-error" id="authError" role="alert"></p>
+  </div>
+</div>
+
+<!-- ====================== CHANGE PASSWORD MODAL ====================== -->
+<div class="modal" id="pwModal" hidden>
+  <div class="modal-card narrow" role="dialog" aria-modal="true" aria-label="Change password">
+    <header class="modal-head">
+      <h2>Change password</h2>
+      <button class="icon-btn" id="pwClose" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+    </header>
+    <form id="pwForm">
+      <div class="modal-body">
+        <label class="field">
+          <span>Current password</span>
+          <input type="password" id="pwCurrent" autocomplete="current-password" required />
+        </label>
+        <label class="field">
+          <span>New password</span>
+          <input type="password" id="pwNext" autocomplete="new-password" required minlength="8"
+                 placeholder="At least 8 characters" />
+        </label>
+        <p class="auth-error" id="pwError" role="alert"></p>
+      </div>
+      <footer class="modal-foot">
+        <span class="muted">Other sessions will be signed out.</span>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-ghost" id="pwCancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update password</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".md,.markdown,.mdown,.mkd,.txt,text/markdown,text/plain" multiple hidden />
+<div class="visually-hidden" id="live" aria-live="polite"></div>
+
+<script src="vendor/marked.min.js"></script>
+<script src="vendor/purify.min.js"></script>
+<script src="vendor/highlight.min.js"></script>
+<script src="vendor/html2pdf.bundle.min.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/markdown.js"></script>
+<script src="assets/js/notes.js"></script>
+<script src="assets/js/exporters.js"></script>
+<script src="assets/js/cloud.js"></script>
+<script src="assets/js/authui.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  /* AuthUI starts once the editor has booted, so the cloud panel can
+     open documents immediately. */
+  window.addEventListener('DOMContentLoaded', function () {
+    window.AuthUI.init().then(function () {
+      if (window.App) window.App.pullSettingsFromServer();
+    });
+  });
+</script>
+</body>
+</html>
