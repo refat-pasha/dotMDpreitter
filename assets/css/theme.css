@@ -1,0 +1,163 @@
+/* =========================================================================
+   dotMDpritter — theme.css : design tokens
+   ========================================================================= */
+
+:root {
+  /* accent ramp (individual values overridden per accent at the bottom) */
+  --a-50:#eef2ff; --a-100:#e0e7ff; --a-200:#c7d2fe; --a-300:#a5b4fc;
+  --a-400:#818cf8; --a-500:#6366f1; --a-600:#4f46e5; --a-700:#4338ca;
+
+  --r-xs:5px; --r-sm:8px; --r-md:11px; --r-lg:16px; --r-xl:22px; --r-full:999px;
+
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
+
+  --font-ui:"Inter","Segoe UI Variable","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:"JetBrains Mono","Cascadia Code","Fira Code","SF Mono",Consolas,"Liberation Mono",monospace;
+  --font-read:var(--font-ui);
+  --fs-ui:13.5px;
+  --fs-body:17px;
+
+  --ease:cubic-bezier(.4,0,.2,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --dur:.18s;
+
+  --sidebar-w:262px;
+  --notes-w:320px;
+  --editor-fr:50%;
+  --zoom:1;
+}
+
+/* =========================== DARK (default) =========================== */
+:root,
+[data-theme="dark"] {
+  --bg-0:#08090d; --bg-1:#0d0f15; --bg-2:#12151d; --bg-3:#181c26;
+  --bg-4:#212634; --bg-5:#2c3243;
+
+  --fg-0:#f2f4f8; --fg-1:#d7dbe4; --fg-2:#a4abbb; --fg-3:#6f7789;
+
+  --line-1:#1e2330; --line-2:#2a3140; --line-3:#39425a;
+
+  --accent:var(--a-500);
+  --accent-fg:#ffffff;
+  --accent-soft:color-mix(in srgb, var(--accent) 16%, transparent);
+  --accent-line:color-mix(in srgb, var(--accent) 40%, transparent);
+  --accent-glow:color-mix(in srgb, var(--accent) 30%, transparent);
+
+  --ok:#34d399; --warn:#fbbf24; --dan:#f87171;
+
+  --shadow-1:0 1px 2px rgba(0,0,0,.4);
+  --shadow-2:0 4px 14px -2px rgba(0,0,0,.5), 0 2px 4px rgba(0,0,0,.3);
+  --shadow-3:0 18px 48px -12px rgba(0,0,0,.72), 0 4px 12px rgba(0,0,0,.45);
+  --shadow-pop:0 24px 64px -16px rgba(0,0,0,.8), 0 0 0 1px var(--line-2);
+
+  --code-bg:#0b0e15;
+  --sel:color-mix(in srgb, var(--accent) 30%, transparent);
+  color-scheme:dark;
+}
+
+/* ============================== LIGHT ================================= */
+[data-theme="light"] {
+  --bg-0:#eef0f5; --bg-1:#f7f8fb; --bg-2:#ffffff; --bg-3:#f2f4f9;
+  --bg-4:#e9ecf3; --bg-5:#dde1ec;
+
+  --fg-0:#10131a; --fg-1:#262b36; --fg-2:#565e70; --fg-3:#838b9d;
+
+  --line-1:#e6e9f0; --line-2:#d9dde8; --line-3:#c3c9d8;
+
+  --accent-soft:color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-line:color-mix(in srgb, var(--accent) 34%, transparent);
+  --accent-glow:color-mix(in srgb, var(--accent) 22%, transparent);
+
+  --ok:#059669; --warn:#d97706; --dan:#dc2626;
+
+  --shadow-1:0 1px 2px rgba(16,20,32,.06);
+  --shadow-2:0 4px 14px -2px rgba(16,20,32,.12), 0 2px 4px rgba(16,20,32,.06);
+  --shadow-3:0 18px 44px -14px rgba(16,20,32,.22), 0 4px 10px rgba(16,20,32,.08);
+  --shadow-pop:0 24px 60px -18px rgba(16,20,32,.3), 0 0 0 1px var(--line-2);
+
+  --code-bg:#f6f7fb;
+  color-scheme:light;
+}
+
+/* ============================ ACCENTS ================================= */
+[data-accent="violet"]  { --a-300:#c4b5fd; --a-400:#a78bfa; --a-500:#8b5cf6; --a-600:#7c3aed; }
+[data-accent="emerald"] { --a-300:#6ee7b7; --a-400:#34d399; --a-500:#10b981; --a-600:#059669; }
+[data-accent="amber"]   { --a-300:#fcd34d; --a-400:#fbbf24; --a-500:#f59e0b; --a-600:#d97706; }
+[data-accent="rose"]    { --a-300:#fda4af; --a-400:#fb7185; --a-500:#f43f5e; --a-600:#e11d48; }
+[data-accent="cyan"]    { --a-300:#67e8f9; --a-400:#22d3ee; --a-500:#06b6d4; --a-600:#0891b2; }
+
+/* =========================== FONT CHOICES ============================= */
+[data-font="serif"] { --font-read:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif; }
+[data-font="mono"]  { --font-read:var(--font-mono); }
+
+
+/* ============================== RESET ================================= */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; overflow: hidden; }
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--fs-ui);
+  line-height: 1.5;
+  color: var(--fg-1);
+  background: var(--bg-1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+h1, h2, h3, h4 { color: var(--fg-0); }
+a { color: var(--accent); }
+::selection { background: var(--sel); }
+
+* { scrollbar-width: thin; scrollbar-color: var(--bg-5) transparent; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--bg-5);
+  border: 3px solid transparent;
+  border-radius: var(--r-full);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--line-3); background-clip: content-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-xs); }
+:focus:not(:focus-visible) { outline: none; }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+.ic {
+  width: 16px; height: 16px; flex: 0 0 auto;
+  display: inline-block; vertical-align: -3px;
+}
+.ic.sm { width: 14px; height: 14px; }
+.ic.lg { width: 26px; height: 26px; }
+.ic.xl { width: 42px; height: 42px; }
+.ic.caret { width: 12px; height: 12px; transform: rotate(90deg); opacity: .8; }
+
+.muted { color: var(--fg-3); }
+.spacer { flex: 1 1 auto; }
+.dot {
+  width: 3px; height: 3px; border-radius: 50%;
+  background: var(--fg-3); opacity: .55; flex: 0 0 auto;
+}
+kbd {
+  font-family: var(--font-mono); font-size: 11px;
+  padding: 1px 5px; border-radius: var(--r-xs);
+  background: var(--bg-4); border: 1px solid var(--line-2);
+  border-bottom-width: 2px; color: var(--fg-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
