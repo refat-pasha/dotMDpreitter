@@ -208,9 +208,9 @@ Commands:
     npm run dist           Windows installer + portable exe
     npm run test:desktop   shell self-tests (no Electron required)
 
-Build output goes to `..\..\dotMDpritter-dist` (i.e.
-`D:\Codes\AI Agents\dotMDpritter-dist`), NOT to a folder inside this
-workspace — see the integrity-label note below.
+Build output goes to `dist/` inside the project (git-ignored — the
+installers are >100 MB, over GitHub's push limit; publish them as GitHub
+Releases instead).
 
 ### Known Windows gotcha: Low integrity label on the workspace
 
@@ -218,15 +218,22 @@ The `Deepseek Harness` folder (and everything under it, including this
 workspace) carries an inherited **Low mandatory integrity label**
 (`icacls <dir>` → `Mandatory Label\Low Mandatory Level`). Consequences:
 
-- any executable born under it runs as a Low-IL process, and Electron/
+- any executable *born* under it runs as a Low-IL process, and Electron/
   Chromium aborts at startup with 0x80000003 / c0000005 — packaged builds
   "don't work" when run from inside the workspace;
 - a Low-IL installer cannot write into Medium-IL folders, so even the
   Setup silently fails to install;
-- copying the artifacts to an unlabelled location (any normal user folder)
-  fixes both — the same exes run perfectly from there.
+- `icacls /setintegritylevel` needs SeSecurityPrivilege and fails from the
+  harness, even via WMI — but **moving** a folder preserves its label, so
+  the working recipe is: build elsewhere (unlabelled parent), then
+  `Move-Item` the `dist/` folder into the project. The moved `dist/` keeps
+  its clean Medium label, and files created inside it inherit none.
 
-This is why electron-builder's `output` points outside the harness subtree.
+That is exactly how the current `dist/` got here. If it is ever deleted and
+recreated inside the workspace, the exes will crash again — repeat the
+move-out/move-in dance (or build with the output folder outside the
+harness subtree, as the config once did: `../../dotMDpritter-dist`).
+
 The dev-time Electron runs (`npm run desktop`) use `node_modules\electron`
 under the workspace and hit the same wall; run the app from an installed
 copy or from a copy outside the label while developing the shell.

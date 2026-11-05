@@ -9,12 +9,15 @@ productName: dotMDpritter
 copyright: Released under the MIT licence.
 
 directories:
-  # Build output lives OUTSIDE the DSH workspace subtree on purpose: the
-  # harness labels "Deepseek Harness" (and everything below) with a Low
-  # mandatory integrity label, and executables born under a Low-IL label
-  # crash at startup (Chromium aborts, 0x80000003) and their installers
-  # cannot write into Medium-IL folders. "AI Agents" carries no label.
-  output: ../../dotMDpritter-dist
+  # Output lives inside the project (git-ignored; files are >100 MB so they
+  # can never be pushed to GitHub anyway — releases carry the installers).
+  # NOTE the Windows integrity-label gotcha (NOTES.md): this dist/ folder was
+  # MOVED in from outside the workspace and therefore kept its clean (Medium)
+  # integrity label. If dist/ is ever deleted and recreated here, it would
+  # inherit the parent's Low label and the exes would crash at startup —
+  # fix by moving dist/ out and back in (a move keeps labels) or by building
+  # elsewhere and moving the output in.
+  output: dist
   buildResources: build
 
 # Allow-list: only the runtime files ship in the package. Tests, docs,
