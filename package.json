@@ -1,20 +1,31 @@
 {
   "name": "dotmdpritter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "A beautiful offline-first Markdown editor with margin notes and PDF/DOC export.",
+  "description": "A beautiful offline-first Markdown editor with margin notes and PDF/DOC export — zero-dependency web server plus an Electron desktop shell.",
   "type": "commonjs",
+  "main": "desktop/main.js",
+  "author": "Refat Pasha",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js 4173",
+    "desktop": "electron .",
+    "icons": "node build/gen-icon.js",
+    "dist": "electron-builder --win",
+    "dist:all": "electron-builder -mwl",
     "test": "node runall.js",
     "test:unit": "node selftest.js",
     "test:api": "node apitest.js",
-    "test:cloud": "node cloudtest.js"
+    "test:cloud": "node cloudtest.js",
+    "test:desktop": "node desktop/desktop-selftest.js"
   },
-  "keywords": ["markdown", "editor", "preview", "notes", "pdf", "export", "offline"],
+  "keywords": ["markdown", "editor", "preview", "notes", "pdf", "export", "offline", "electron", "desktop"],
   "license": "MIT",
   "engines": {
     "node": ">=16"
+  },
+  "devDependencies": {
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0"
   }
 }

@@ -22,7 +22,7 @@
   <img alt="No build step" src="https://img.shields.io/badge/build-none-3ddc84?style=flat-square">
   <img alt="No npm dependencies" src="https://img.shields.io/badge/npm_dependencies-0-3ddc84?style=flat-square">
   <img alt="Node" src="https://img.shields.io/badge/node-%3E%3D16-5fa04e?style=flat-square">
-  <img alt="Tests" src="https://img.shields.io/badge/tests-324%20assertions%20passing-5fa04e?style=flat-square">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-416%20assertions%20passing-5fa04e?style=flat-square">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-c2a0ff?style=flat-square">
 </p>
 
@@ -40,7 +40,7 @@ whole thing is one folder you can copy, `node server.js`, and use.
 |---|---|
 | **Runtime** | Node.js ≥ 16. No `npm install` required. |
 | **Dependencies** | Zero. The five libraries in `vendor/` are vendored. |
-| **Tests** | 324 assertions, all passing. |
+| **Tests** | 416 assertions, all passing. |
 | **Data** | Plain `.md` files in a folder you own and can back up. |
 
 ---
@@ -133,10 +133,11 @@ DOTMD_DATA=D:\mdstore node server.js     # store data somewhere else
 ### Running the tests
 
 ```bash
-npm test                # all three suites: 324 assertions
+npm test                # all four suites
 npm run test:unit       # markdown / notes / store / exporters
 npm run test:api        # auth, storage, path traversal, multi-user isolation
 npm run test:cloud      # the real client module against a live server
+npm run test:desktop    # the Electron shell (paths, CSP, menu wiring, icon codecs)
 ```
 
 <details>
@@ -151,6 +152,34 @@ All suites green
 ```
 
 </details>
+
+---
+
+## Desktop app
+
+dotMDpritter also ships as a native desktop app — same editor, same features,
+no server to start:
+
+```bash
+npm install       # one-time: Electron + electron-builder (the only dev deps)
+npm run desktop   # open the app window
+npm run dist      # Windows installer + portable exe
+```
+
+The Electron shell starts the same zero-dependency server **in-process** on a
+random loopback port and renders it in a native window. You get real menus
+(File → Export as PDF…, View → Toggle theme), system spellcheck, single-instance
+launch, and a per-user data folder — Help → *Open data folder* (on Windows
+`%APPDATA%\dotMDpritter\data`). Everything else, including the cloud folders
+and every export format, behaves exactly like the browser build; the web app
+is loaded unmodified.
+
+Hardening on top of the server's own headers: a strict CSP
+(`script-src 'self'`, the one-time inline boot script moved to
+`assets/js/boot.js`), a sandboxed renderer with `contextIsolation`, navigation
+locked to the loopback origin, external links handed to your real browser, and
+downloads collected in `<data folder>/../downloads`. The shell has its own
+Node-only test suite, included in `npm test`.
 
 ---
 
@@ -337,7 +366,13 @@ dotMDpritter/
 ├── selftest.js             markdown / notes / store / exporters unit tests
 ├── apitest.js              auth, storage, traversal, isolation (real HTTP)
 ├── cloudtest.js            the real client module against a live server
-├── runall.js               runs all three suites
+├── runall.js               runs all four suites
+├── desktop/                Electron desktop shell
+│   ├── main.js             main process: in-process server, windows, menu, IPC
+│   ├── preload.js          the only renderer↔main bridge (contextIsolation on)
+│   └── desktop-selftest.js shell tests, runs on plain Node
+├── build/gen-icon.js       generates the app icon (zero-dependency)
+├── electron-builder.yml    installer config: NSIS, portable, dmg, AppImage
 ├── shot.js / shots.js      headless-Chrome screenshot harness (CDP)
 ├── backup.js               timestamped copy of data/
 ├── NOTES.md                verification notes, bug log, known limits

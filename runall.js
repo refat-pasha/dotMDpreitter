@@ -1,8 +1,9 @@
-﻿const { spawnSync } = require("child_process");
+const { spawnSync } = require("child_process");
 const suites = [
   ["unit (markdown/notes/store/exporters)", "selftest.js"],
   ["api (auth + storage + isolation)", "apitest.js"],
   ["cloud client contract", "cloudtest.js"],
+  ["desktop shell (Electron wrapper)", "desktop/desktop-selftest.js"],
 ];
 let bad = 0;
 for (const [name, file] of suites) {

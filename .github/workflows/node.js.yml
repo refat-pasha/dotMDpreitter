@@ -27,5 +27,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
+      env:
+        ELECTRON_SKIP_BINARY_DOWNLOAD: '1'   # tests don't need the Electron binary
     - run: npm run build --if-present
     - run: npm test

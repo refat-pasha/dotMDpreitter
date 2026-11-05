@@ -1,0 +1,65 @@
+# =========================================================================
+# electron-builder configuration for the dotMDpritter desktop shell.
+# Targets: Windows NSIS installer + portable exe (plus AppImage/dmg when
+# built on the matching platform).
+# =========================================================================
+
+appId: com.dotmdpritter.app
+productName: dotMDpritter
+copyright: Released under the MIT licence.
+
+directories:
+  # Build output lives OUTSIDE the DSH workspace subtree on purpose: the
+  # harness labels "Deepseek Harness" (and everything below) with a Low
+  # mandatory integrity label, and executables born under a Low-IL label
+  # crash at startup (Chromium aborts, 0x80000003) and their installers
+  # cannot write into Medium-IL folders. "AI Agents" carries no label.
+  output: ../../dotMDpritter-dist
+  buildResources: build
+
+# Allow-list: only the runtime files ship in the package. Tests, docs,
+# screenshots, data/ and the deploy configs stay out of the installer —
+# the same philosophy server.js applies to HTTP.
+files:
+  - desktop/**
+  - server.js
+  - server/**
+  - index.html
+  - assets/**
+  - vendor/**
+  - package.json
+  - README.md
+  - LICENSE
+  # Test-scheduling helper used only on the dev machine.
+  - '!desktop/smoke-run.ps1'
+
+asar: true
+
+win:
+  icon: build/icon.png        # converted to .ico automatically
+  target:
+    - target: nsis
+    - target: portable
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  shortcutName: dotMDpritter
+  artifactName: ${productName}-Setup-${version}.${ext}
+
+portable:
+  artifactName: ${productName}-Portable-${version}.${ext}
+
+linux:
+  icon: build/icon.png
+  category: Office
+  target:
+    - AppImage
+
+mac:
+  icon: build/icon.png
+  category: public.app-category.productivity
+  target:
+    - dmg

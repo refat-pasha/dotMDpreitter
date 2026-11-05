@@ -168,3 +168,70 @@ covered: `cloud.js` is tested directly against a live server, and all 121
 element ids referenced by the client exist in `index.html`. A visual pass over
 the sign-in screen and the Cloud tab is the first thing to do.
 
+---
+
+## Desktop shell (added 2026-11-05)
+
+`desktop/` turns the existing zero-dependency web app into a native desktop
+application **without forking it**. The Electron main process requires
+`server.js` in-process, starts it on an ephemeral loopback port
+(`127.0.0.1:<random>`), and loads it into a normal BrowserWindow. The web
+build (`node server.js`) keeps working exactly as before.
+
+Layout:
+
+    desktop/main.js               main process: server bootstrap, windows, menu, IPC
+    desktop/preload.js            the only renderer↔main bridge (contextIsolation on)
+    desktop/desktop-selftest.js   Node-only tests for everything testable
+    build/gen-icon.js             generates build/icon.* and desktop/icon.* (zero-dep)
+
+Key decisions:
+
+- **Reuse, don't fork.** Native menu actions are forwarded to the renderer,
+  where `assets/js/desktop-integration.js` clicks the same toolbar buttons a
+  user would click. No editor logic is duplicated in the main process.
+- **Data location.** Accounts, sessions and documents live in the OS user
+  directory (Windows: `%APPDATA%\dotMDpritter\data`), never inside the
+  install folder. Help → Open data folder reveals it.
+- **Security.** Strict CSP (`script-src 'self'`, no `unsafe-inline` — the
+  former inline boot script moved to `assets/js/boot.js`), sandboxed renderer,
+  `contextIsolation: true`, `nodeIntegration: false`, navigation locked to the
+  loopback origin, external links opened in the system browser, downloads
+  redirected to `<userData>/downloads` with collision-safe names.
+- **Icon.** Generated programmatically (`npm run icons`) with a small SDF
+  rasteriser and hand-rolled PNG/ICO encoders — no image tooling required.
+
+Commands:
+
+    npm run desktop        run the app in development (needs: npm install)
+    npm run icons          regenerate icons after changing the design
+    npm run dist           Windows installer + portable exe
+    npm run test:desktop   shell self-tests (no Electron required)
+
+Build output goes to `..\..\dotMDpritter-dist` (i.e.
+`D:\Codes\AI Agents\dotMDpritter-dist`), NOT to a folder inside this
+workspace — see the integrity-label note below.
+
+### Known Windows gotcha: Low integrity label on the workspace
+
+The `Deepseek Harness` folder (and everything under it, including this
+workspace) carries an inherited **Low mandatory integrity label**
+(`icacls <dir>` → `Mandatory Label\Low Mandatory Level`). Consequences:
+
+- any executable born under it runs as a Low-IL process, and Electron/
+  Chromium aborts at startup with 0x80000003 / c0000005 — packaged builds
+  "don't work" when run from inside the workspace;
+- a Low-IL installer cannot write into Medium-IL folders, so even the
+  Setup silently fails to install;
+- copying the artifacts to an unlabelled location (any normal user folder)
+  fixes both — the same exes run perfectly from there.
+
+This is why electron-builder's `output` points outside the harness subtree.
+The dev-time Electron runs (`npm run desktop`) use `node_modules\electron`
+under the workspace and hit the same wall; run the app from an installed
+copy or from a copy outside the label while developing the shell.
+
+Electron and electron-builder are the project's first and only dev
+dependencies; the server itself stays zero-dependency. The web build and all
+324 existing assertions are untouched.
+

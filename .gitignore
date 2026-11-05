@@ -19,3 +19,12 @@ desktop.ini
 # Backups hold every user documents; never commit them.
 backups/
 data.replaced-*/
+
+# Desktop build output
+dist/
+
+# Generated app icons (rebuild with: npm run icons)
+build/icon.png
+build/icon.ico
+desktop/icon.png
+desktop/icon.ico
