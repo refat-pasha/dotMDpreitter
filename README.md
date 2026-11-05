@@ -9,6 +9,7 @@
 </p>
 
 <p align="center">
+  <a href="#download">Download</a> ·
   <a href="#screenshots">Screenshots</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#what-it-does">Features</a> ·
@@ -19,6 +20,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/refat-pasha/dotMDpreitter/releases/latest"><img alt="Download" src="https://img.shields.io/badge/download-latest%20release-4f46e5?style=flat-square"></a>
   <img alt="No build step" src="https://img.shields.io/badge/build-none-3ddc84?style=flat-square">
   <img alt="No npm dependencies" src="https://img.shields.io/badge/npm_dependencies-0-3ddc84?style=flat-square">
   <img alt="Node" src="https://img.shields.io/badge/node-%3E%3D16-5fa04e?style=flat-square">
@@ -42,6 +44,27 @@ whole thing is one folder you can copy, `node server.js`, and use.
 | **Dependencies** | Zero. The five libraries in `vendor/` are vendored. |
 | **Tests** | 416 assertions, all passing. |
 | **Data** | Plain `.md` files in a folder you own and can back up. |
+
+---
+
+## Download
+
+Ready-to-run desktop builds are published on the
+[**Releases page**](https://github.com/refat-pasha/dotMDpreitter/releases/latest) —
+no Node, no terminal, nothing to install but the app itself.
+
+| File | What it is |
+| --- | --- |
+| [`dotMDpritter-Setup-x.y.z.exe`](https://github.com/refat-pasha/dotMDpreitter/releases/latest) | Windows installer — Start-menu + desktop shortcuts, clean uninstall |
+| [`dotMDpritter-Portable-x.y.z.exe`](https://github.com/refat-pasha/dotMDpreitter/releases/latest) | Single-file portable build — copy it anywhere and run, no installation |
+
+After downloading: Windows SmartScreen may show *“unknown publisher”* on first
+run (the build is unsigned) — click **More info → Run anyway**. Your notes are
+stored per-user in `%APPDATA%\dotMDpritter\data`; the app's **Help → Open data
+folder** reveals it, and it survives uninstall/reinstall.
+
+Prefer the browser version? The same editor runs from source with
+`node server.js` — see [Quick start](#quick-start).
 
 ---
 
@@ -180,6 +203,10 @@ Hardening on top of the server's own headers: a strict CSP
 locked to the loopback origin, external links handed to your real browser, and
 downloads collected in `<data folder>/../downloads`. The shell has its own
 Node-only test suite, included in `npm test`.
+
+> Don't want to build it? Grab the ready-made installer from the
+> [Releases page](https://github.com/refat-pasha/dotMDpreitter/releases/latest) —
+> see [Download](#download).
 
 ---
 
