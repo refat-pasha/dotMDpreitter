@@ -38,6 +38,30 @@ files:
 
 asar: true
 
+# Register as a Markdown handler: the app then appears in the right-click
+# "Open with" list and in Settings > Default apps, where the user can make it
+# the default for these extensions. Windows does not let installers force the
+# default silently, so the one-time user confirmation is expected.
+# `name` becomes the ProgID; keep it app-specific so it cannot collide with
+# another app's generic "Markdown Document" entry.
+fileAssociations:
+  - ext: md
+    name: dotMDpritter.md
+    description: Markdown document
+    role: Editor
+  - ext: markdown
+    name: dotMDpritter.markdown
+    description: Markdown document
+    role: Editor
+  - ext: mdown
+    name: dotMDpritter.mdown
+    description: Markdown document
+    role: Editor
+  - ext: mkd
+    name: dotMDpritter.mkd
+    description: Markdown document
+    role: Editor
+
 win:
   icon: build/icon.png        # converted to .ico automatically
   target:
@@ -45,6 +69,7 @@ win:
     - target: portable
 
 nsis:
+  include: build/installer.nsh      # Applications + Capabilities registration
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true

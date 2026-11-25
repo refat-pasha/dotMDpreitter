@@ -50,6 +50,26 @@
     if (el) el.click();
   });
 
+  /* Files opened from Windows: right-click "Open with", the default app,
+     a file dropped onto the exe, or a command-line argument. The main
+     process reads the file and sends { name, content } or { name, error };
+     openFromCloud() creates/opens the tab through the app's own path. */
+  desk.onOpenFile(function (payload) {
+    if (!payload) return;
+    if (payload.error) {
+      if (window.App && window.App.toast) {
+        window.App.toast('Could not open ' + payload.name + ': ' + payload.error, 'err');
+      }
+      return;
+    }
+    if (window.App && window.App.openFromCloud) {
+      window.App.openFromCloud({ name: payload.name, content: payload.content });
+    }
+  });
+
+  /* Let the main process flush any file queued before this page booted. */
+  desk.notifyReady();
+
   /* Settings → Data: reveal the per-user data folder in the file manager. */
   window.addEventListener('DOMContentLoaded', function () {
     try {

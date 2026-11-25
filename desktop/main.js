@@ -20,7 +20,7 @@ const path = require('path');
 const fs = require('fs');
 
 const APP_NAME = 'dotMDpritter';
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 const APP_ROOT = path.join(__dirname, '..');
 
 /* ----------------------------------------------------------- pure helpers */
@@ -285,6 +285,91 @@ function smokeMark(step, extra) {
   } catch (_) { /* diagnostics only */ }
 }
 
+/* ------------------------------------------------- files from the OS */
+
+/* Extensions this app will open when Windows hands it a file ("Open with",
+   default app, drag onto the exe, or a command-line argument). Matches the
+   extensions the in-app Open picker accepts, minus .txt, which is left alone
+   so the association cannot hijack plain-text files. */
+const OPEN_EXTS = /\.(md|markdown|mdown|mkd)$/i;
+
+/* storage.js refuses files above 8 MB; the shell keeps the same ceiling. */
+const MAX_OPEN_BYTES = 8 * 1024 * 1024;
+
+/**
+ * Extract Markdown file paths from a process argv list.
+ *
+ * Callers pass argv.slice(1) so the executable itself is already dropped.
+ * Skipped: ".", "..", option flags and anything that is not an existing
+ * regular file (which also filters the dev-mode "electron ." app path).
+ *
+ * @param {string[]} args
+ * @param {(absPath:string)=>boolean} [isFile] existence probe (injectable)
+ * @returns {string[]} absolute file paths
+ */
+function parseFileArgs(args, isFile) {
+  const check = typeof isFile === 'function'
+    ? isFile
+    : (p) => { try { return fs.statSync(p).isFile(); } catch (_) { return false; } };
+
+  const out = [];
+  (args || []).forEach((raw) => {
+    const arg = String(raw == null ? '' : raw).trim();
+    if (!arg || arg === '.' || arg === '..' || arg.startsWith('-')) return;
+    if (!OPEN_EXTS.test(arg)) return;
+
+    let abs;
+    try { abs = path.resolve(arg); } catch (_) { return; }
+    if (!check(abs)) return;
+    if (out.indexOf(abs) === -1) out.push(abs);
+  });
+  return out;
+}
+
+/**
+ * Read one Markdown file into a payload the renderer can open.
+ * Never throws: unreadable/oversized files come back as { name, error }.
+ * @param {string} filePath absolute path
+ * @returns {{name:string, content?:string, error?:string}}
+ */
+function readOpenFile(filePath) {
+  const name = path.basename(filePath);
+  try {
+    const st = fs.statSync(filePath);
+    if (!st.isFile()) return { name, error: 'Not a file.' };
+    if (st.size > MAX_OPEN_BYTES) return { name, error: 'The file is larger than 8 MB.' };
+    return { name, content: fs.readFileSync(filePath, 'utf8') };
+  } catch (err) {
+    return { name, error: (err && err.message) || String(err) };
+  }
+}
+
+/**
+ * Queue renderer payloads, sending immediately when the renderer is ready.
+ * Files requested before the page has booted (first launch) stay queued.
+ * @param {object} ctx shared shell context
+ * @param {Array<object>} payloads
+ */
+function queueOpenFiles(ctx, payloads) {
+  const list = payloads || [];
+  if (!list.length) return;
+  ctx.pendingOpen = (ctx.pendingOpen || []).concat(list);
+  flushOpenQueue(ctx);
+}
+
+/** Deliver every queued payload to the window, if it is ready. */
+function flushOpenQueue(ctx) {
+  const win = ctx.window;
+  const pending = ctx.pendingOpen || [];
+  if (!pending.length) return;
+  if (!win || win.isDestroyed() || !ctx.rendererReady) return;
+
+  ctx.pendingOpen = [];
+  pending.forEach((payload) => {
+    if (!win.isDestroyed()) win.webContents.send('desktop:open-file', payload);
+  });
+}
+
 /**
  * Boot (or reuse) the loopback server, then create and load one window.
  * @param {object} ctx shared context; receives app/window/instance/baseUrl
@@ -325,6 +410,7 @@ async function createWindow(ctx, opts = {}) {
     }
   });
   ctx.window = win;
+  ctx.rendererReady = false;               // set by preload's notifyReady IPC
   smokeMark('window:created');
   win.webContents.once('did-start-loading', () => smokeMark('renderer:loading'));
   win.webContents.once('did-finish-load', () => smokeMark('renderer:loaded'));
@@ -347,6 +433,14 @@ async function createWindow(ctx, opts = {}) {
  */
 function wireIpc(ctx) {
   const { app, ipcMain, BrowserWindow, shell } = require('electron');
+
+  /* The renderer signals it has booted and is ready for queued files
+     (opened from the command line before the page existed). */
+  ipcMain.on('desktop:renderer-ready', (event) => {
+    if (!BrowserWindow.fromWebContents(event.sender)) return;
+    ctx.rendererReady = true;
+    flushOpenQueue(ctx);
+  });
 
   ipcMain.handle('desktop:get-paths', () => desktopPaths(app));
 
@@ -388,12 +482,17 @@ function start() {
   const ctx = { app, window: null, instance: null, baseUrl: null, closed: false };
   ctx.app = app;
 
-  /* One instance: a second launch focuses the existing window. */
+  /* One instance: a second launch focuses the existing window. When Windows
+     launches the app again with a file ("Open with" while it is running),
+     the path arrives in argv and is opened in the existing window. */
   if (!app.requestSingleInstanceLock()) {
     app.quit();
     return ctx;
   }
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, argv) => {
+    const files = parseFileArgs((argv || []).slice(1));
+    if (files.length) queueOpenFiles(ctx, files.map(readOpenFile));
+
     const win = ctx.window;
     if (win) {
       if (win.isMinimized()) win.restore();
@@ -415,6 +514,14 @@ function start() {
       smokeMark('menu:set');
       await createWindow(ctx, {});
       smokeMark('window:loadURL resolved');
+
+      /* Files Windows handed us on first launch ("Open with", default app,
+         or a command-line argument). Queued until the renderer says ready. */
+      const cliFiles = parseFileArgs(process.argv.slice(1));
+      if (cliFiles.length) {
+        smokeMark('cli:files', cliFiles.join('|'));
+        queueOpenFiles(ctx, cliFiles.map(readOpenFile));
+      }
     } catch (err) {
       smokeMark('fatal', String(err && err.stack || err));
       console.error('[desktop] fatal:', err);
@@ -441,8 +548,10 @@ function start() {
       console.error = (...a) => { smokeLog.push('ERR: ' + a.join(' ')); origLog(...a); };
       const { execInFocused } = require('./smoke');
       const smokeFile = path.join(require('os').tmpdir(), 'dmd-smoke-result.json');
+      const cliFiles = parseFileArgs(process.argv.slice(1));
+      const expectFile = cliFiles.length ? path.basename(cliFiles[0]) : null;
       try {
-        const code = await execInFocused(ctx);
+        const code = await execInFocused(ctx, { expectFile });
         fs.writeFileSync(smokeFile, JSON.stringify({ code, log: smokeLog }, null, 2));
         app.exit(code);
       } catch (err) {
@@ -480,6 +589,10 @@ module.exports = {
   APP_VERSION,
   desktopPaths,
   isLoopbackUrl,
+  parseFileArgs,
+  readOpenFile,
+  queueOpenFiles,
+  flushOpenQueue,
   BASE_CSP,
   CSP_META,
   sendMenuTo,

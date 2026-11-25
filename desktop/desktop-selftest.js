@@ -111,6 +111,46 @@ ok(/base-uri 'none'/.test(desktop.BASE_CSP), 'CSP disables base hijacking');
     'menu has no untested custom actions (' + wanted.size + ' custom items)');
 }
 
+/* ---------------------------------------- files opened by the OS / CLI */
+
+{
+  const fakeExists = (p) => /\.(md|markdown|mdown|mkd)$/i.test(p);
+
+  ok(desktop.parseFileArgs(['D:\\docs\\note.md'], fakeExists).length === 1,
+    'parseFileArgs keeps a .md path that exists');
+  ok(desktop.parseFileArgs(['relative\\note.md'], fakeExists)[0] === path.resolve('relative\\note.md'),
+    'parseFileArgs resolves to an absolute path');
+  ok(desktop.parseFileArgs(['--flag', 'note.md'], fakeExists).length === 1,
+    'parseFileArgs skips option flags');
+  ok(desktop.parseFileArgs(['.', '..', 'note.md'], fakeExists).length === 1,
+    'parseFileArgs skips . and ..');
+  ok(desktop.parseFileArgs(['C:\\a\\note.txt'], fakeExists).length === 0,
+    'parseFileArgs ignores non-Markdown extensions');
+  ok(desktop.parseFileArgs(['C:\\a\\missing.md'], () => false).length === 0,
+    'parseFileArgs skips paths that do not exist');
+  ok(desktop.parseFileArgs(['C:\\a\\note.md', 'C:\\a\\note.md'], fakeExists).length === 1,
+    'parseFileArgs de-duplicates repeated paths');
+  ok(desktop.parseFileArgs([], fakeExists).length === 0 &&
+    desktop.parseFileArgs(null, fakeExists).length === 0,
+    'parseFileArgs tolerates empty input');
+
+  const missing = desktop.readOpenFile(path.join(ROOT, 'does-not-exist.md'));
+  ok(missing.name === 'does-not-exist.md' && typeof missing.error === 'string',
+    'readOpenFile reports a readable error for a missing file');
+  ok(typeof desktop.readOpenFile(path.join(ROOT, 'desktop')).error === 'string',
+    'readOpenFile refuses a directory');
+
+  const tmp = path.join(os.tmpdir(), 'dmd-open-test-' + process.pid + '.md');
+  fs.writeFileSync(tmp, '# hello\n', 'utf8');
+  try {
+    const got = desktop.readOpenFile(tmp);
+    ok(got.content === '# hello\n' && got.name === path.basename(tmp),
+      'readOpenFile returns the file content and name');
+  } finally {
+    try { fs.unlinkSync(tmp); } catch (_) { /* best effort */ }
+  }
+}
+
 /* ---------------------------------------------------------------- icons */
 
 {
@@ -165,6 +205,11 @@ ok(/base-uri 'none'/.test(desktop.BASE_CSP), 'CSP disables base hijacking');
   ok(!/^  - data/m.test(yml), 'data/ is not shipped');
   ok(!/docs\/\*\*/.test(yml), 'docs/ screenshots are not shipped');
   ok(/asar:\s*true/.test(yml), 'app is packed into an asar archive');
+  ok(/fileAssociations:/.test(yml), 'electron-builder registers file associations');
+  ok(/ext:\s*md\b/.test(yml) && /ext:\s*markdown\b/.test(yml) &&
+    /ext:\s*mdown\b/.test(yml) && /ext:\s*mkd\b/.test(yml),
+    'associations cover .md/.markdown/.mdown/.mkd');
+  ok(!/ext:\s*txt\b/.test(yml), 'plain .txt files are left alone');
 }
 
 /* The web app must still boot with the desktop bridge absent. */
@@ -177,7 +222,8 @@ ok(/base-uri 'none'/.test(desktop.BASE_CSP), 'CSP disables base hijacking');
   ok(/Content-Security-Policy/.test(html), 'index.html carries a CSP meta tag');
 
   const preload = fs.readFileSync(path.join(ROOT, 'desktop', 'preload.js'), 'utf8');
-  for (const api of ['isDesktop', 'openExternal', 'openNewWindow', 'getPaths', 'openDataFolder', 'onMenu']) {
+  for (const api of ['isDesktop', 'openExternal', 'openNewWindow', 'getPaths', 'openDataFolder',
+    'onMenu', 'onOpenFile', 'notifyReady']) {
     ok(preload.includes(api), `preload exposes ${api}`);
   }
   ok(!preload.includes('nodeIntegration') || !/(require\('fs'\)|require\("fs"\))/.test(preload),
@@ -186,6 +232,9 @@ ok(/base-uri 'none'/.test(desktop.BASE_CSP), 'CSP disables base hijacking');
   const integ = fs.readFileSync(path.join(ROOT, 'assets', 'js', 'desktop-integration.js'), 'utf8');
   ok(/if\s*\(!desk\s*\|\|\s*!desk\.isDesktop\)\s*return;/.test(integ),
     'the bridge no-ops in a plain browser');
+  ok(/desk\.onOpenFile\(/.test(integ), 'the bridge listens for files from the shell');
+  ok(/desk\.notifyReady\(\)/.test(integ), 'the bridge announces renderer readiness');
+  ok(/openFromCloud\(/.test(integ), 'the bridge opens files through openFromCloud');
 }
 
 /* server.js must export startServer with the options the shell uses. */

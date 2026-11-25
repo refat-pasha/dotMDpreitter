@@ -180,10 +180,13 @@ build (`node server.js`) keeps working exactly as before.
 
 Layout:
 
-    desktop/main.js               main process: server bootstrap, windows, menu, IPC
+    desktop/main.js               main process: server bootstrap, windows, menu, IPC,
+                                  file associations (argv → open-file)
     desktop/preload.js            the only renderer↔main bridge (contextIsolation on)
     desktop/desktop-selftest.js   Node-only tests for everything testable
+    desktop/smoke.js              headless boot verification (DOTMD_DESKTOP_SMOKE=1)
     build/gen-icon.js             generates build/icon.* and desktop/icon.* (zero-dep)
+    build/installer.nsh           NSIS: Applications + Capabilities registration
 
 Key decisions:
 
@@ -212,11 +215,44 @@ Build output goes to `dist/` inside the project (git-ignored — the
 installers are >100 MB, over GitHub's push limit; publish them as GitHub
 Releases instead).
 
-### Known Windows gotcha: Low integrity label on the workspace
+### File associations — "Open with" / default app (added v1.2.0)
 
-The `Deepseek Harness` folder (and everything under it, including this
-workspace) carries an inherited **Low mandatory integrity label**
-(`icacls <dir>` → `Mandatory Label\Low Mandatory Level`). Consequences:
+The installer registers dotMDpritter as a Markdown handler so it shows up in
+the right-click **Open with** list and in **Settings → Apps → Default apps**:
+
+- `electron-builder.yml` → `fileAssociations` maps `.md`, `.markdown`,
+  `.mdown`, `.mkd` to app-specific ProgIDs (`dotMDpritter.md`, …). Using a
+  generic name like `Markdown Document` makes electron-builder emit a ProgID
+  with spaces that collides with other editors' entries — keep it namespaced.
+- `build/installer.nsh` (wired in via `nsis.include`) adds the two
+  registrations electron-builder does not do, both in HKCU because the
+  installer is per-user:
+  1. `Software\Classes\Applications\dotMDpritter.exe` → the app appears as an
+     "Open with" *application* candidate;
+  2. `Software\RegisteredApplications` + `…\dotMDpritter\Capabilities` → the
+     card in Settings → Default apps, with all four extensions listed.
+- Windows still requires the user to confirm the default once. Installers are
+  not permitted to claim `HKCU\…\FileExts\.md\UserChoice` silently, so the
+  one-time "Always use" tick is expected behaviour, not a bug.
+
+The shell accepts files from the OS: `parseFileArgs()` filters
+`process.argv` for existing Markdown files (first launch *and*
+`second-instance`, i.e. "Open with" while the app is already running), the
+main process reads them (`readOpenFile`, 8 MB ceiling, same as `storage.js`)
+and sends `{ name, content }` over `desktop:open-file`. Queued payloads wait
+for the renderer's `desktop:renderer-ready` handshake, then
+`assets/js/desktop-integration.js` opens each one through
+`App.openFromCloud()` — the app's own tab-opening path, no duplicated logic.
+`DOTMD_DESKTOP_SMOKE=1` with a file argument asserts the document really
+landed in the store.
+
+### Known Windows gotcha: Low integrity label on the old workspace
+
+> **Historical.** The project no longer lives there; this is kept because the
+> same trap will recur for any executable built inside a DSH workspace.
+
+The `Deepseek Harness` folder carried an inherited **Low mandatory integrity
+label** (`icacls <dir>` → `Mandatory Label\Low Mandatory Level`). Consequences:
 
 - any executable *born* under it runs as a Low-IL process, and Electron/
   Chromium aborts at startup with 0x80000003 / c0000005 — packaged builds
@@ -225,20 +261,19 @@ workspace) carries an inherited **Low mandatory integrity label**
   Setup silently fails to install;
 - `icacls /setintegritylevel` needs SeSecurityPrivilege and fails from the
   harness, even via WMI — but **moving** a folder preserves its label, so
-  the working recipe is: build elsewhere (unlabelled parent), then
-  `Move-Item` the `dist/` folder into the project. The moved `dist/` keeps
-  its clean Medium label, and files created inside it inherit none.
+  the working recipe was: build elsewhere (unlabelled parent), then
+  `Move-Item` the `dist/` folder in.
 
-That is exactly how the current `dist/` got here. If it is ever deleted and
-recreated inside the workspace, the exes will crash again — repeat the
-move-out/move-in dance (or build with the output folder outside the
-harness subtree, as the config once did: `../../dotMDpritter-dist`).
+Note the reverse trap too: **integrity labels travel with moved files.** When
+the project was moved here, `node_modules` kept its baked-in Low labels and
+`electron.exe` kept crashing until it was deleted and reinstalled fresh in
+this (unlabelled) folder.
 
-The dev-time Electron runs (`npm run desktop`) use `node_modules\electron`
-under the workspace and hit the same wall; run the app from an installed
-copy or from a copy outside the label while developing the shell.
+The dev-time Electron runs (`npm run desktop`) under DSH still need the
+sandbox workaround; run the app from an installed copy, or double-click the
+exe normally outside the harness.
 
 Electron and electron-builder are the project's first and only dev
-dependencies; the server itself stays zero-dependency. The web build and all
-324 existing assertions are untouched.
+dependencies; the server itself stays zero-dependency. The web build remains
+untouched.
 

@@ -31,5 +31,19 @@ contextBridge.exposeInMainWorld('dotmdDesktop', {
     };
     ipcRenderer.on('desktop:menu', wrapped);
     return () => ipcRenderer.removeListener('desktop:menu', wrapped);
-  }
+  },
+
+  /* A file handed to the app by Windows ("Open with", default app,
+     command line). Payload: { name, content } or { name, error }.
+     Returns an unsubscribe function. */
+  onOpenFile: (handler) => {
+    const wrapped = (_event, payload) => {
+      try { handler(payload); } catch (_) { /* never break the bridge */ }
+    };
+    ipcRenderer.on('desktop:open-file', wrapped);
+    return () => ipcRenderer.removeListener('desktop:open-file', wrapped);
+  },
+
+  /* Tell the main process this renderer booted and can take queued files. */
+  notifyReady: () => ipcRenderer.send('desktop:renderer-ready')
 });
